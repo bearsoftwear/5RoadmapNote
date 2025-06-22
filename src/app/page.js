@@ -1,42 +1,28 @@
-'use client';
+import NoteForm from '@/components/NoteForm';
+import NoteCard from '@/components/NoteCard';
+import { Button } from '@/components/ui/button';
+import prisma from '@/lib/prisma';
 
-import NoteForm from "@/components/NoteForm";
-import NoteCard from "@/components/NoteCard";
-import {useEffect, useState} from "react";
+export default async function Home() {
+  const notes = await prisma.note.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
 
-export default function Home() {
-    const [notes, setNotes] = useState([]);
-    const [loading, setLoading] = useState(false);
+  return (
+    <>
+      <div className="container mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-4">Note-Taking App</h1>
+        <NoteForm />
+        <div className="grid gap-4 mt-4">
+          {notes.length === 0 ? (
+            <p className="text-center">No notes yet.</p>
+          ) : (
+            notes.map((note) => <NoteCard key={note.id} note={note} />)
+          )}
+        </div>
+      </div>
 
-    const fetchNotes = async () => {
-        setLoading(true)
-        const res = await fetch('/api/notes');
-        const data = await res.json();
-        setNotes(data);
-        setLoading(false);
-    }
-
-    useEffect(() => {
-        fetchNotes();
-    }, [])
-
-    return (
-        <>
-            <div className="container mx-auto p-4 max-w-2xl">
-                <h1 className="text-2xl font-bold mb-4">Note-Taking App</h1>
-                <NoteForm onNoteAdded={fetchNotes}/>
-                {loading ? (
-                    <p>Loading...</p>
-                ) : (
-                    <div className="grid gap-4">
-                        {notes.map((note) => (
-                            <NoteCard key={note.id} note={note} onNoteDeleted={fetchNotes}/>
-                        ))}
-                    </div>
-                )}
-            </div>
-
-            {/*
+      {/*
             <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
                 <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
                     <Image
@@ -135,6 +121,6 @@ export default function Home() {
                 </footer>
             </div>
             */}
-        </>
-    );
+    </>
+  );
 }
